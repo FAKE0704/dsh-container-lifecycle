@@ -1,0 +1,45 @@
+{
+  "name": "dsh-container-lifecycle",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.js",
+  "description": "Stage A 容器执行世界的生命周期插件：镜像 digest 钉定 → 有标签容器（sshd/同路径 bind mount/仅回环端口/宿主 uid 映射）→ helper 闭包注入与哈希 → 临时 host key 钉 known_hosts → ~/.ssh/config 托管块 → 运行时插入原版 dsh-ssh 连接行",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FAKE0704/dsh-container-lifecycle.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.2.2-rc.2"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-ssh": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-subprocess-ssh": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox-ssh": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-fs-ssh": "0.2.2-rc.1",
+    "@deepseek-ai/cordis": "4.1.0",
+    "@deepseek-ai/dsh-fs": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-brand": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-fs-local": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-fs-sandbox": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-subprocess": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-util-values": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox-local": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-sandbox-policy": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-subprocess-local": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-session-projection": "0.2.2-rc.1",
+    "@deepseek-ai/dsh-http-proxy": "0.2.2-rc.1"
+  },
+  "files": [
+    "index.js",
+    "lib/*.js",
+    "docker/",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" }
+  }
+}

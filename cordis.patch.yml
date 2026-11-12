@@ -1,0 +1,27 @@
+# Self-sufficient composition for plugin-manager installs.
+#
+# Layer order: a selected bundle's patch applies after the base bundle's rows
+# exist, so the disables below replace the local execution world (by-id
+# patches cannot rename — replacement = disable + insert). Profile-level
+# patches still apply after this layer, so a profile can override any row's
+# config by id, or re-disable rows to mix transports.
+#
+# The dsh-ssh connection row is deliberately absent: SshConnection connects
+# eagerly in its constructor, so this plugin inserts it at runtime, only after
+# ensureWorld() has materialized everything the connection verifies.
+- id: subprocess
+  disabled: true
+- id: sandbox
+  disabled: true
+- id: fs-sandbox
+  disabled: true
+- insert:
+    - id: subprocess-ssh
+      name: "@deepseek-ai/dsh-subprocess-ssh"
+    - id: sandbox-ssh
+      name: "@deepseek-ai/dsh-sandbox-ssh"
+    - id: fs-ssh
+      name: "@deepseek-ai/dsh-fs-ssh"
+    - id: dsh-container-lifecycle
+      name: dsh-container-lifecycle
+      config: {}
