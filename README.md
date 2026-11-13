@@ -4,7 +4,7 @@ A [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) community 
 
 One plugin owns the whole connection chain — image digest pin → labeled container (sshd, identical-path bind mount, loopback-only port, host uid mapping) → helper closure injected and hashed → ephemeral host key pinned into plugin-owned `known_hosts` → managed `~/.ssh/config` block → the stock upstream `dsh-ssh` connection inserted at runtime with the computed helper hash. **No upstream seam is touched; nothing is proxied.** The ssh transport plugins are the unmodified upstream packages.
 
-> **Status: experimental (Stage A).** Community plugin by an independent author — not part of DeepSeek Harness, not reviewed or endorsed by the DeepSeek team. Tested against exactly one DSH release (see the [version corridor](#version-corridor)).
+> **Status: experimental (Stage A).** Community plugin by an independent author — not part of DeepSeek Harness, not reviewed or endorsed by the DeepSeek team. Tested against exactly one DSH release (see the [supported versions](#supported-versions)).
 
 > ⚠️ **Desktop limitation (upstream bug, honestly stated):** DSH's Electron hosts (Desktop app and its CLI carrier) currently cannot carry dsh-ssh streams — Electron's BoringSSL lacks the TLS 1.2 PSK cipher suites the transport negotiates ([upstream discussion #9120](https://github.com/deepseek-ai/deepseek-harness/discussions/9120)). On those hosts this world degrades exactly like any dsh-ssh usage would. The verified host for this plugin today is the **headless CLI driven by a plain-OpenSSL Node** (recipe below). If upstream ships the cipher availability, Desktop starts working with zero changes here.
 
@@ -129,17 +129,17 @@ Override by id from the profile's `cordis.patch.yml` (defaults shown):
 
 Port collisions fail loudly with a named error naming the config knob. A rebuilt image under the same tag is refused with both digests; set `imageRebind: true` once to adopt the new digest (the container is then recreated — adopting into an old container would run old bytes).
 
-## Version corridor
+## Supported versions
 
 | Component | This release pins | Notes |
 |---|---|---|
 | DeepSeek Harness runtime | `>=0.2.2-rc.1 <0.2.2-rc.2` (`engines.dsh`) | Tested on 0.2.2-rc.1, macOS arm64 + Docker Desktop |
-| ssh family (`@deepseek-ai/dsh-ssh`, `-subprocess-ssh`, `-sandbox-ssh`, `-fs-ssh`) | exact `0.2.2-rc.1` | The rc.2 peers are runtime-incompatible with an rc.1 host; exact pins keep the corridor honest |
+| ssh family (`@deepseek-ai/dsh-ssh`, `-subprocess-ssh`, `-sandbox-ssh`, `-fs-ssh`) | exact `0.2.2-rc.1` | The rc.2 peers are runtime-incompatible with an rc.1 host; exact pins keep the supported range honest |
 | helper closure (14 family packages, resolved from this plugin's own deps) | exact `0.2.2-rc.1` | Same versions host- and container-side; SHA-256-verified in-container |
 | `@deepseek-ai/cordis` | exact `4.1.0` | |
 | Container base image | `node:24-bookworm-slim` (built at first use) | glibc 2.36 ≥ the 2.28 baseline |
 
-Corridor policy: each new DSH release gets a pin bump + a re-run of the gate checks (install → session in container → adopt after restart → drift refusal) before the corridor widens. `0.2.2-rc.2` is deliberately excluded (family peer mismatch on an rc.1 runtime).
+Version policy: each new DSH release gets a pin bump + a re-run of the gate checks (install → session in container → adopt after restart → drift refusal) before the supported range widens. `0.2.2-rc.2` is deliberately excluded (family peer mismatch on an rc.1 runtime).
 
 ## Design & evidence
 
