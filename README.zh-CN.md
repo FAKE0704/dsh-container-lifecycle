@@ -26,6 +26,7 @@
 
 - 第 1 步粘贴块里的 `cordis.patch.yml` 写你自己的模型配置（provider / model）。
 - `allowBuilds: false` 三项是刻意为之：原生模块（`node-pty` / `koffi` / `dsh-subprocess-local`）**只在容器内构建**，从不在宿主上构建——否则 pnpm 11 会把被拦截的构建脚本当作安装失败。
+- 掐流路由提示（实测撞过）：`git ls-remote https://github.com/…` 超时或报 HTTP/2 成帧层错误时，按 pnpm 自身的提示本地替换传输——`git config --global url."git@github.com:".insteadOf "https://github.com/"`（锁文件仍记录 https URL），或对 github.com 强制 HTTP/1.1。实测通过：exit 0，掐流路由下约 2 分 15 秒。
 - 首次启动会构建镜像（需要能拉取 `node:24-bookworm-slim` 基础镜像）、创建容器、在容器内安装 helper、写入托管的 ssh 配置块；第一次要几分钟，之后都在秒级。
 - 国内网络可在配置里加 `aptMirror: mirrors.tuna.tsinghua.edu.cn`（只影响首次构建）。
 - 完整的会话实录（真实会话在容器内自证运行环境）见英文 README「Verified transcript」一节。

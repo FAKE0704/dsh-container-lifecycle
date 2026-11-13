@@ -68,6 +68,8 @@ The `allowBuilds: false` entries are deliberate: the native helper modules (`nod
 dsh plugin --profile headless add dsh-container-lifecycle
 ```
 
+Flaky-route note (hit during verification): if `git ls-remote https://github.com/…` times out or dies in the HTTP/2 framing layer, pnpm's own hint applies — substitute the transport locally with `git config --global url."git@github.com:".insteadOf "https://github.com/"` (the lockfile still records the https URL), or force HTTP/1.1 for github.com. Verified working: exit 0, ~2¼ min on a throttled route.
+
 **3 — run a session in the container world:**
 
 ```bash
