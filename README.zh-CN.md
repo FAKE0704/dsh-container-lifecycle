@@ -14,7 +14,7 @@
 
 - 真实 agent 会话的 `bash` / `fs` 工具在**镜像已锁定的 Debian 容器**内执行；你的工作区以**完全相同的路径**挂载进容器（宿主上的 `/Users/you/work`，在容器内就是同一个路径）。
 - 重启自动恢复：容器带专属标签，宿主重启后被自动接管复用；临时主机密钥自动重新锁定。
-- 防镜像漂移：镜像按 digest 锁定（从仓库拉取的用 repo digest，本地构建的用镜像 ID）；同一标签的镜像被重建后会**拒绝启动**，报错同时给出新旧两个 digest 和明确的重新绑定方法。helper 依赖包按 SHA-256 记录哈希，并在容器内复核。
+- 防镜像漂移：镜像按 digest 锁定（从仓库拉取的用 repo digest，本地构建的用镜像 ID）；同一标签的镜像被重建后会**拒绝启动**，报错同时给出新旧两个 digest 和明确的重新绑定方法。helper **入口文件**按 SHA-256 记录哈希并在每次加载时复核；其依赖包整体按精确版本锁定、在容器内安装。
 - 两个以只读为主的工具：`container-status`（查看锁定 / 容器 / helper / ssh 配置块的状态）、`container-dispose`（需审批确认后才执行的清理）。
 - 首次使用自动构建：镜像标签不存在时，自动用内置的 `docker/Dockerfile` 构建（apt 镜像源可配置）并锁定构建结果。
 
@@ -51,7 +51,7 @@
 |---|---|---|
 | DSH 运行时 | `>=0.2.2-rc.1 <0.2.2-rc.2`（`engines.dsh`） | 在 0.2.2-rc.1、macOS arm64 + Docker Desktop 上实测 |
 | ssh 系列（`@deepseek-ai/dsh-ssh`、`-subprocess-ssh`、`-sandbox-ssh`、`-fs-ssh`） | 精确 `0.2.2-rc.1` | rc.2 的 peer 依赖与 rc.1 运行时不兼容；精确锁定保证版本诚实 |
-| helper 依赖包（14 个系列包，从本插件自身依赖解析） | 精确 `0.2.2-rc.1` | 宿主与容器内版本一致；容器内按 SHA-256 复核 |
+| helper 依赖包（13 个 dsh 系列包 + cordis，从本插件自身依赖解析） | 精确锁定（系列包 `0.2.2-rc.1`、cordis `4.1.0`） | 宿主与容器内版本一致；容器内对入口文件按 SHA-256 复核 |
 | `@deepseek-ai/cordis` | 精确 `4.1.0` | |
 | 容器基础镜像 | `node:24-bookworm-slim`（首次使用时构建） | glibc 2.36 ≥ 基线 2.28 |
 
@@ -61,7 +61,7 @@
 
 - 配套插件（可选，容器环境推荐）：[dsh-docker-policy-ceiling](https://github.com/FAKE0704/dsh-docker-policy-ceiling)——即使走 ssh 传输，也把沙箱权限上限保持在 `workspace-write`。
 - `evidence/` 目录：与上游相关的加载器时序问题（运行时 `ctx.plugin()` 插入后的服务级联）复现脚本。
-- 信任链（digest 锁定 / 主机密钥锁定 / helper 哈希 / 硬编码的 `BatchMode` + `StrictHostKeyChecking`）刻意**不开放配置**——安全边界不因配置而松动。
+- 信任链（digest 锁定 / 主机密钥锁定 / helper 哈希 / `BatchMode` + `StrictHostKeyChecking`——这两个 ssh 开关来自本插件锁定的原版 dsh-ssh 命令行）刻意**不开放配置**——安全边界不因配置而松动。
 
 ## 许可
 

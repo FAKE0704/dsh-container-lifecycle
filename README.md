@@ -12,7 +12,7 @@ One plugin owns the whole connection chain — image digest pin → labeled cont
 
 - A real agent session whose `bash`/`fs` tools execute **inside a pinned Debian container**, with your workspace bind-mounted at the **identical path** (`/Users/you/work` on the host is the same path inside the container — same-path projection).
 - Restart resilience: containers are labeled and **adopted** after host restarts; ephemeral host keys are re-pinned automatically.
-- Trust chain that refuses drift: the image is pinned by digest (repo digest when pulled, image ID when locally built) and a rebuilt image under the same tag is **refused** with both digests and explicit rebind paths. The helper closure is SHA-256-pinned and re-verified.
+- Trust chain that refuses drift: the image is pinned by digest (repo digest when pulled, image ID when locally built) and a rebuilt image under the same tag is **refused** with both digests and explicit rebind paths. The helper **entry point** is SHA-256-pinned and re-verified on every load; the closure around it is exact-version-pinned and installed inside the container.
 - Two read-mostly tools: `container-status` (pin/container/helper/ssh-block facts) and `container-dispose` (teardown behind an approval gate).
 - First-use **auto-build**: if the image tag is absent, the plugin builds it from the bundled `docker/Dockerfile` (apt mirror configurable) and pins the result.
 
@@ -133,7 +133,7 @@ Port collisions fail loudly with a named error naming the config knob. A rebuilt
 |---|---|---|
 | DeepSeek Harness runtime | `>=0.2.2-rc.1 <0.2.2-rc.2` (`engines.dsh`) | Tested on 0.2.2-rc.1, macOS arm64 + Docker Desktop |
 | ssh family (`@deepseek-ai/dsh-ssh`, `-subprocess-ssh`, `-sandbox-ssh`, `-fs-ssh`) | exact `0.2.2-rc.1` | The rc.2 peers are runtime-incompatible with an rc.1 host; exact pins keep the supported range honest |
-| helper closure (14 family packages, resolved from this plugin's own deps) | exact `0.2.2-rc.1` | Same versions host- and container-side; SHA-256-verified in-container |
+| helper closure (13 dsh family packages + cordis, resolved from this plugin's own deps) | exact pins (family `0.2.2-rc.1`, cordis `4.1.0`) | Same versions host- and container-side; the entry point is SHA-256-verified in-container |
 | `@deepseek-ai/cordis` | exact `4.1.0` | |
 | Container base image | `node:24-bookworm-slim` (built at first use) | glibc 2.36 ≥ the 2.28 baseline |
 
@@ -143,7 +143,7 @@ Version policy: each new DSH release gets a pin bump + a re-run of the gate chec
 
 - Companion plugin (optional, recommended for container worlds): [dsh-docker-policy-ceiling](https://github.com/FAKE0704/dsh-docker-policy-ceiling) — keeps the sandbox mode ceiling at `workspace-write` even under ssh transports.
 - `evidence/` — repro scripts for the upstream-relevant loader timing finding (service cascade after runtime `ctx.plugin()` insertion).
-- The trust chain (digest pin / host-key pin / helper hash / `BatchMode` + `StrictHostKeyChecking` hard-coded) is deliberately not configurable.
+- The trust chain (digest pin / host-key pin / helper hash / `BatchMode` + `StrictHostKeyChecking` — the ssh flags come from the stock upstream dsh-ssh command line this plugin pins) is deliberately not configurable.
 
 ## License
 

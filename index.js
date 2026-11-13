@@ -50,12 +50,16 @@ export async function apply(ctx, config) {
   // session can snapshot its tools mid-cascade and lose the shell/fs tools.
   const cascade = ['subprocess', 'sandbox', 'fs', 'shell', 'workingDirectory']
   const settleStart = Date.now()
-  while (Date.now() - settleStart < 8000) {
-    const present = cascade.filter((name) => typeof ctx.get === 'function' && ctx.get(name) !== undefined)
-    if (present.length === cascade.length) break
+  const missingOf = () => cascade.filter((name) => !(typeof ctx.get === 'function' && ctx.get(name) !== undefined))
+  while (Date.now() - settleStart < 8000 && missingOf().length > 0) {
     await new Promise((resolve) => { setTimeout(resolve, 100) })
   }
-  log(`service cascade settled in ${Date.now() - settleStart}ms`)
+  const missing = missingOf()
+  if (missing.length === 0) {
+    log(`service cascade settled in ${Date.now() - settleStart}ms`)
+  } else {
+    log(`service cascade did NOT settle within 8000ms — still missing: ${missing.join(', ')}; the first session may lack these tools`)
+  }
   setTimeout(async () => {
     const service = typeof ctx.get === 'function' ? ctx.get('ssh') : undefined
     if (service?.ready) {
@@ -65,7 +69,7 @@ export async function apply(ctx, config) {
 
   ctx.tools.register({
     name: 'container-status',
-    description: '查看容器执行世界的生命周期状态：容器是否在跑（由谁收养）、镜像 digest 钉定、helper 哈希是否与钉定一致、端口与工作区投影、known_hosts/ssh 托管块是否就位。只读免审。',
+    description: '查看容器执行世界的生命周期状态：容器是否在跑（由谁接管）、镜像 digest 锁定、helper 哈希是否与锁定一致、端口与工作区挂载、known_hosts/ssh 托管块是否就位。只读免审。',
     parameters: { type: 'object', properties: {}, additionalProperties: false },
     output: OUTPUT,
     async execute() {
@@ -77,16 +81,20 @@ export async function apply(ctx, config) {
         const facts = await containerFacts(cfg)
         container = facts === null ? 'absent' : facts.running ? `running (${facts.id.slice(0, 12)})` : 'stopped'
       }
-      const hashNow = dockerUp && container.startsWith('running')
-        ? (await runDocker(cfg.dockerBin, ['exec', cfg.alias, 'sha256sum', `${cfg.helperDir}/${HELPER_REL}`], { timeoutMs: 15_000 })).stdout.trim().split(/\s+/)[0]
-        : null
+      let hashNow = null
+      let hashNote = ' (container not running — not rechecked)'
+      if (dockerUp && container.startsWith('running')) {
+        const probe = await runDocker(cfg.dockerBin, ['exec', cfg.alias, 'sha256sum', `${cfg.helperDir}/${HELPER_REL}`], { timeoutMs: 15_000 })
+        if (probe.code === 0 && probe.stdout.trim() !== '') hashNow = probe.stdout.trim().split(/\s+/)[0]
+        else hashNote = ' (recheck failed — docker exec errored, drift NOT verified)'
+      }
       const known = existsSync(knownHostsPath(cfg.alias)) ? 'present' : 'missing'
       const key = existsSync(keyPaths(cfg.alias).private) ? 'present' : 'missing'
       const lines = [
         `alias ${cfg.alias} (port ${cfg.port}, workspace ${cfg.workspace})`,
         `container: ${container}${world.outcome === 'created' ? ' — created this load' : ''}`,
         `image pin: ${state.imagePin}`,
-        `helperHash: ${state.helperHash.slice(0, 16)}…${hashNow === null ? ' (container not running — not rechecked)' : hashNow === state.helperHash ? ' ✓ matches pin' : ' ✗ DRIFT'}`,
+        `helperHash: ${state.helperHash.slice(0, 16)}…${hashNow === null ? hashNote : hashNow === state.helperHash ? ' ✓ matches pin' : ' ✗ DRIFT'}`,
         `known_hosts ${known}, client key ${key}`,
         `family: dsh-ssh ${state.familyVersions['@deepseek-ai/dsh-ssh']}`,
       ]
@@ -96,7 +104,7 @@ export async function apply(ctx, config) {
 
   ctx.tools.register({
     name: 'container-dispose',
-    description: '拆除本别名的容器执行世界：docker rm -f 容器、移除 ~/.ssh/config 托管块与 known_hosts。钉定记录/客户端密钥/helper 缓存保留（下次加载自动收养重建）。写面过审批门。',
+    description: '拆除本别名的容器执行世界：docker rm -f 容器、移除 ~/.ssh/config 托管块与 known_hosts。锁定记录/客户端密钥/helper 缓存保留（下次加载自动接管重建）。写面过审批门。',
     parameters: { type: 'object', properties: {}, additionalProperties: false },
     output: OUTPUT,
     async execute() {

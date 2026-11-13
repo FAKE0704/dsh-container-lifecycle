@@ -19,6 +19,12 @@ if [ -n "${HOST_UID:-}" ] && [ "${HOST_UID}" != "$(id -u agent)" ]; then
   # Deliberate host-uid mapping (Hermes docker_run_as_host_user precedent).
   # /home/agent and /opt/dsh follow the new uid; the bind mount never does —
   # its files keep host ownership, which is exactly what makes them writable.
+  # node:24-bookworm-slim ships user "node" at uid 1000 — the default first
+  # uid on most Linux hosts; move it aside or usermod aborts (set -e) before
+  # sshd ever starts and first use dies in the sshd wait loop.
+  if [ "$(id -u node 2>/dev/null || true)" = "${HOST_UID}" ]; then
+    usermod -u 2000 node
+  fi
   usermod -u "$HOST_UID" agent
   chown -R "$HOST_UID" /home/agent /opt/dsh
 fi
