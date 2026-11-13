@@ -50,13 +50,13 @@
 
 | 组件 | 本版本锁定 | 说明 |
 |---|---|---|
-| DSH 运行时 | `>=0.2.2-rc.1 <0.2.2-rc.2`（`engines.dsh`） | 在 0.2.2-rc.1、macOS arm64 + Docker Desktop 上实测 |
-| ssh 系列（`@deepseek-ai/dsh-ssh`、`-subprocess-ssh`、`-sandbox-ssh`、`-fs-ssh`） | 精确 `0.2.2-rc.1` | rc.2 的 peer 依赖与 rc.1 运行时不兼容；精确锁定保证版本诚实 |
-| helper 依赖包（13 个 dsh 系列包 + cordis，从本插件自身依赖解析） | 精确锁定（系列包 `0.2.2-rc.1`、cordis `4.1.0`） | 宿主与容器内版本一致；容器内对入口文件按 SHA-256 复核 |
+| DSH 运行时 | `>=0.2.2-rc.2 <0.2.2-rc.3`（`engines.dsh`） | 在 0.2.2-rc.1 与 0.2.2-rc.2、macOS arm64 + Docker Desktop 上实测；rc.1 宿主请用 `v0.1.0-rc.1` 标签 |
+| ssh 系列（`@deepseek-ai/dsh-ssh`、`-subprocess-ssh`、`-sandbox-ssh`、`-fs-ssh`） | 精确 `0.2.2-rc.2` | 宿主与容器内同版本 peer；精确锁定保证版本诚实 |
+| helper 依赖包（13 个 dsh 系列包 + cordis，从本插件自身依赖解析） | 精确锁定（系列包 `0.2.2-rc.2`、cordis `4.1.0`） | 宿主与容器内版本一致；容器内对入口文件按 SHA-256 复核 |
 | `@deepseek-ai/cordis` | 精确 `4.1.0` | |
 | 容器基础镜像 | `node:24-bookworm-slim`（首次使用时构建） | glibc 2.36 ≥ 基线 2.28 |
 
-版本策略：DSH 每发布一个新版本，先更新锁定、重跑一遍既定检查（安装 → 容器内会话 → 重启接管 → 拒绝漂移镜像），再放宽兼容范围。`0.2.2-rc.2` 被刻意排除（rc.1 运行时上的 peer 依赖不匹配）。
+版本策略：DSH 每发布一个新版本，先更新锁定、重跑一遍既定检查（安装 → 容器内会话 → 重启接管 → 拒绝漂移镜像），再放宽兼容范围。`0.2.2-rc.1` 宿主：请安装 `v0.1.0-rc.1` 标签（rc.1 兼容范围的最后版本）。
 
 ## 设计与佐证
 

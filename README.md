@@ -133,13 +133,13 @@ Port collisions fail loudly with a named error naming the config knob. A rebuilt
 
 | Component | This release pins | Notes |
 |---|---|---|
-| DeepSeek Harness runtime | `>=0.2.2-rc.1 <0.2.2-rc.2` (`engines.dsh`) | Tested on 0.2.2-rc.1, macOS arm64 + Docker Desktop |
-| ssh family (`@deepseek-ai/dsh-ssh`, `-subprocess-ssh`, `-sandbox-ssh`, `-fs-ssh`) | exact `0.2.2-rc.1` | The rc.2 peers are runtime-incompatible with an rc.1 host; exact pins keep the supported range honest |
-| helper closure (13 dsh family packages + cordis, resolved from this plugin's own deps) | exact pins (family `0.2.2-rc.1`, cordis `4.1.0`) | Same versions host- and container-side; the entry point is SHA-256-verified in-container |
+| DeepSeek Harness runtime | `>=0.2.2-rc.2 <0.2.2-rc.3` (`engines.dsh`) | Tested on 0.2.2-rc.1 and 0.2.2-rc.2, macOS arm64 + Docker Desktop; the `v0.1.0-rc.1` tag serves rc.1 hosts |
+| ssh family (`@deepseek-ai/dsh-ssh`, `-subprocess-ssh`, `-sandbox-ssh`, `-fs-ssh`) | exact `0.2.2-rc.2` | Same-version peers host- and container-side; exact pins keep the supported range honest |
+| helper closure (13 dsh family packages + cordis, resolved from this plugin's own deps) | exact pins (family `0.2.2-rc.2`, cordis `4.1.0`) | Same versions host- and container-side; the entry point is SHA-256-verified in-container |
 | `@deepseek-ai/cordis` | exact `4.1.0` | |
 | Container base image | `node:24-bookworm-slim` (built at first use) | glibc 2.36 ≥ the 2.28 baseline |
 
-Version policy: each new DSH release gets a pin bump + a re-run of the gate checks (install → session in container → adopt after restart → drift refusal) before the supported range widens. `0.2.2-rc.2` is deliberately excluded (family peer mismatch on an rc.1 runtime).
+Version policy: each new DSH release gets a pin bump + a re-run of the gate checks (install → session in container → adopt after restart → drift refusal) before the supported range widens. `0.2.2-rc.1` hosts: install the `v0.1.0-rc.1` tag (the rc.1 corridor's last release).
 
 ## Design & evidence
 
