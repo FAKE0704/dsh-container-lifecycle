@@ -76,7 +76,7 @@ cd /your/workspace && dsh --profile headless "uname -a && head -2 /etc/os-releas
 
 First launch builds the image (needs a pullable `node:24-bookworm-slim` base), creates the container, installs the helper closure inside it, and writes the managed ssh block. Expect a few minutes, once.
 
-### Verified transcript (real session, unedited)
+### Verified transcript (real session; private path segments and unrelated entries elided)
 
 ```
 $ dsh --profile headless "Run these in order: 1) uname -a  2) head -2 /etc/os-release
@@ -86,12 +86,10 @@ $ dsh --profile headless "Run these in order: 1) uname -a  2) head -2 /etc/os-re
 1) Linux a9bc8598881d 7.0.12-linuxkit #1 SMP PREEMPT ... aarch64 GNU/Linux
 2) PRETTY_NAME="Debian GNU/Linux 12 (bookworm)"
    NAME="Debian GNU/Linux"
-3) /Users/gaogao/Documents/deepseek-harness/DSHFAKE
+3) /Users/…/Documents/deepseek-harness/DSHFAKE
 4) container-provider-design
    dsh-local-llm
-   genshu-design-log
-   github-evidence-draft
-   jd-hunt
+   … (3 unrelated private entries elided)
 
 Verdict: I am inside a Linux container, not on the macOS host.
 Evidence: the linuxkit kernel is what Docker Desktop runs on macOS, and the
